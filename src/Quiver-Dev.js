@@ -34,6 +34,7 @@ api.load(ui.scriptLocation+"/functions/quiver_svgParser.js");
 api.load(ui.scriptLocation+"/functions/quiver_utilities_shapes.js");
 api.load(ui.scriptLocation+"/functions/quiver_utilities_text.js");
 api.load(ui.scriptLocation+"/functions/quiver_processAndImport.js");
+api.load(ui.scriptLocation+"/functions/quiver_sceneUpdate.js");
 api.load(ui.scriptLocation+"/functions/quiver_utilities_webserver.js");
 
 ui.show();

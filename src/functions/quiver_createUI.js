@@ -42,16 +42,20 @@ pasteButton.onClick = function() {
             // Attempt to save the scene before importing
             console.info('Saving scene...');
             var saved = saveSceneBeforeImport();
-            
+
             if (saved) {
                 console.info('Scene saved. Parsing…');
             } else {
                 console.error('Could not save. Parsing…');
             }
         }
-        
-        // Process the SVG
-        processAndImportSVG(svgCode);
+
+        // Process the SVG - use update mode if enabled
+        if (sceneUpdateModeEnabled) {
+            processAndUpdateSVG(svgCode, null);
+        } else {
+            processAndImportSVG(svgCode);
+        }
         
     } catch (e) {
         var errorMsg = e && e.message ? e.message : 'Import failed';
@@ -122,16 +126,20 @@ importFileButton.onClick = function() {
         // Auto-save if enabled
         if (autoSaveEnabled) {
             var saved = saveSceneBeforeImport();
-            
+
             if (saved) {
                 console.info('Scene saved. Processing file...');
             } else {
                 console.error('Could not save. Processing file...');
             }
         }
-        
-        // Process the SVG content
-        processAndImportSVG(fileContents);
+
+        // Process the SVG content - use update mode if enabled
+        if (sceneUpdateModeEnabled) {
+            processAndUpdateSVG(fileContents, null);
+        } else {
+            processAndImportSVG(fileContents);
+        }
         
     } catch (error) {
         console.error("❌ Error reading file");
@@ -166,6 +174,7 @@ var importEffectsEnabled = true;
 var importGroupsEnabled = true;
 var imageFilterQuality = 2; // 0=None, 1=Bilinear, 2=Mipmaps (default), 3=Bicubic
 var emojiPlaceholder = "[e]"; // Placeholder string for emoji positions (must be at least 2 chars)
+var sceneUpdateModeEnabled = false; // When true, update existing layers instead of creating new ones
 
 // Settings button
 var settingsButton = new ui.ImageButton(ui.scriptLocation+"/quiver_assets/quiver_icon-settings.png");
@@ -363,6 +372,23 @@ function createSettingsWindow() {
     groupsLayout.setSpaceBetween(8);
     settingsLayout.add(groupsLayout);
 
+    // Scene update mode checkbox
+    var sceneUpdateLayout = new ui.HLayout();
+    var sceneUpdateCheckbox = new ui.Checkbox(sceneUpdateModeEnabled);
+    if (sceneUpdateModeEnabled) {
+        sceneUpdateCheckbox.setValue(true);
+    } else {
+        sceneUpdateCheckbox.setValue(false);
+    }
+    sceneUpdateCheckbox.onValueChanged = function() {
+        sceneUpdateModeEnabled = sceneUpdateCheckbox.getValue();
+        setSceneUpdateMode(sceneUpdateModeEnabled);
+    };
+    sceneUpdateLayout.add(sceneUpdateCheckbox);
+    sceneUpdateLayout.add(new ui.Label("Scene update mode (preserve bindings)"));
+    sceneUpdateLayout.setSpaceBetween(8);
+    settingsLayout.add(sceneUpdateLayout);
+
     // Import gradients checkbox
     var gradientsLayout = new ui.HLayout();
     var importGradientsCheckbox = new ui.Checkbox(importGradientsEnabled);
@@ -505,6 +531,8 @@ var cornerRadiusInput = new ui.LineEdit();
     applyButton.onClick = function() {
         // Force capture all values
         autoSaveEnabled = autoSaveCheckbox.getValue();
+        sceneUpdateModeEnabled = sceneUpdateCheckbox.getValue();
+        setSceneUpdateMode(sceneUpdateModeEnabled);
         keepOriginalEnabled = keepOriginalCheckbox.getValue();
         defaultRadius = cornerRadiusInput.getText();
         importGradientsEnabled = importGradientsCheckbox.getValue();

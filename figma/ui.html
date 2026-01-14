@@ -100,6 +100,25 @@
     .status-dot.error {
       background: var(--figma-color-bg-danger);
     }
+
+    .mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75em;
+      margin-top: 0.5em;
+      color: var(--figma-color-text-secondary);
+    }
+
+    .mode-toggle input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+    }
+
+    .mode-toggle label {
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -120,7 +139,12 @@
   </div>
   
   <div id="status" class="status" style="display: none;"></div>
-  
+
+  <div class="mode-toggle">
+    <input type="checkbox" id="updateModeCheckbox" />
+    <label for="updateModeCheckbox">Update existing (preserve bindings)</label>
+  </div>
+
   <div class="connection-status">
     <div id="statusDot" class="status-dot"></div>
     <div id="connectionText" class="connection-text">Checking connection...</div>
@@ -139,6 +163,7 @@
     const sendButton = document.getElementById('sendButton');
     const statusDot = document.getElementById('statusDot');
     const connectionText = document.getElementById('connectionText');
+    const updateModeCheckbox = document.getElementById('updateModeCheckbox');
     
     // Check if Quiver is running
     async function checkConnection() {
@@ -181,12 +206,16 @@
       console.log('  emojiData:', emojiData ? emojiData.length + ' emojis' : 'none');
       
       try {
+        // Determine import mode based on checkbox
+        const importMode = updateModeCheckbox.checked ? 'update' : 'fresh';
+
         // Build payload - include vector/text data for hybrid approach if available
         const payload = {
           action: 'importSVG',
-          svgCode: svgCode
+          svgCode: svgCode,
+          mode: importMode
         };
-        
+
         // Add hybrid vector data if present (for stroke gradients)
         if (vectorData && vectorData.length > 0) {
           payload.vectorData = vectorData;
@@ -200,7 +229,7 @@
             console.log('  Has strokes:', vectorData[0].strokes ? vectorData[0].strokes.length : 0);
           }
         }
-        
+
         // Add hybrid text data if present (for accurate alignment)
         if (textData && textData.length > 0) {
           payload.textData = textData;
@@ -213,7 +242,7 @@
             console.log('  Align:', textData[0].textAlignHorizontal, '/', textData[0].textAlignVertical);
           }
         }
-        
+
         // Add emoji data if present (emojis exported as PNG images)
         if (emojiData && emojiData.length > 0) {
           payload.emojiData = emojiData;
@@ -227,10 +256,10 @@
             console.log('  Base64 length:', emojiData[0].base64 ? emojiData[0].base64.length : 'missing');
           }
         }
-        
+
         const payloadStr = JSON.stringify(payload);
         console.log('Payload JSON length:', payloadStr.length);
-        
+
         // Use text/plain to avoid CORS preflight
         console.log('Sending to:', QUIVER_URL);
         const response = await fetch(QUIVER_URL, {

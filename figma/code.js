@@ -2,7 +2,7 @@
 // This runs in Figma's sandbox and handles selection/export logic
 
 // Show the UI
-figma.showUI(__html__, { themeColors: true, width: 250, height: 76 });
+figma.showUI(__html__, { themeColors: true, width: 250, height: 100 });
 
 // Listen for messages from the UI
 figma.ui.onmessage = async (msg) => {

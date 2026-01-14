@@ -229,65 +229,76 @@ function hideLoadingIndicator(layerIds) {
 
 /**
  * Handle SVG import request (with optional hybrid vector data for stroke gradients)
+ * Supports 'mode' parameter: 'update' to update existing layers, 'fresh' for new import
  */
 function handleImportSVG(request) {
     // Show loading indicator before import starts
     var loadingLayers = showLoadingIndicator();
-    
+
     try {
-        
+        var mode = request.mode || 'fresh';
+        var targetGroup = request.targetGroup || null;
+
         // HYBRID TEXT: Store Figma text data BEFORE SVG import so createText can access it
         if (request.textData && request.textData.length > 0) {
             setFigmaTextData(request.textData);
         } else {
             clearFigmaTextData(); // Clear any previous data
         }
-        
+
         // Clear the text shape registry before import (will be populated during SVG import)
         clearCreatedTextShapes();
-        
-        // Import the SVG (createText will now look up alignment from __figmaTextData)
-        // Text shapes created will be registered for emoji positioning
-        processAndImportSVG(request.svgCode);
-        console.info("🏹 Quiver: SVG imported successfully");
-        
-        // If hybrid vector data is present (nodes with stroke gradients),
-        // process them to restore proper strokes with gradients
-        if (request.vectorData && request.vectorData.length > 0) {
-            
-            var viewBox = extractViewBox(request.svgCode);
-            if (!viewBox) {
-                viewBox = {x: 0, y: 0, width: request.frameWidth || 1000, height: request.frameHeight || 1000};
-            }
-            
-            processStrokeGradientNodes(request.vectorData, viewBox);
-        }
-        
-        // EMOJI IMPORT: Create image layers for emojis that Cavalry can't render
-        // These overlay the invisible emoji characters in text, preserving spacing
-        // Only process if emoji import is enabled in settings
-        if (request.emojiData && request.emojiData.length > 0) {
-            if (typeof importEmojisEnabled === 'undefined' || importEmojisEnabled) {
-                
+
+        if (mode === 'update') {
+            // Update mode: match and update existing layers
+            console.info("🏹 Quiver: Starting scene update...");
+            processAndUpdateSVG(request.svgCode, targetGroup);
+            console.info("🏹 Quiver: Scene update completed");
+        } else {
+            // Fresh import mode (default)
+            // Import the SVG (createText will now look up alignment from __figmaTextData)
+            // Text shapes created will be registered for emoji positioning
+            processAndImportSVG(request.svgCode);
+            console.info("🏹 Quiver: SVG imported successfully");
+
+            // If hybrid vector data is present (nodes with stroke gradients),
+            // process them to restore proper strokes with gradients
+            if (request.vectorData && request.vectorData.length > 0) {
+
                 var viewBox = extractViewBox(request.svgCode);
                 if (!viewBox) {
                     viewBox = {x: 0, y: 0, width: request.frameWidth || 1000, height: request.frameHeight || 1000};
                 }
-                
-                processEmojiData(request.emojiData, viewBox);
+
+                processStrokeGradientNodes(request.vectorData, viewBox);
+            }
+
+            // EMOJI IMPORT: Create image layers for emojis that Cavalry can't render
+            // These overlay the invisible emoji characters in text, preserving spacing
+            // Only process if emoji import is enabled in settings
+            if (request.emojiData && request.emojiData.length > 0) {
+                if (typeof importEmojisEnabled === 'undefined' || importEmojisEnabled) {
+
+                    var viewBox = extractViewBox(request.svgCode);
+                    if (!viewBox) {
+                        viewBox = {x: 0, y: 0, width: request.frameWidth || 1000, height: request.frameHeight || 1000};
+                    }
+
+                    processEmojiData(request.emojiData, viewBox);
+                }
             }
         }
-        
+
         // Clear text data, text shape registry, and emoji index maps after processing
         clearFigmaTextData();
         clearCreatedTextShapes();
         if (typeof clearEmojiIndexMaps === 'function') {
             clearEmojiIndexMaps();
         }
-        
+
         // Hide loading indicator now that import is complete
         hideLoadingIndicator(loadingLayers);
-        
+
         // Try to bring Cavalry to the foreground
         // Note: Window focusing may not be available in Cavalry's scripting API
         try {

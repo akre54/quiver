@@ -312,6 +312,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
             // If importGroupsEnabled is false, we'll flatten AFTER import completes
             gid = createGroup(groupName, parentId);
             _registerChild(parentId, gid); // Register group as child for sibling lookups (e.g., background blur)
+            // Tag with Figma ID for scene update feature
+            tagLayerWithFigmaId(gid, node.attrs && node.attrs.id);
             if (stats) stats.groups = (stats.groups || 0) + 1;
             applyBlendMode(gid, node.attrs);
         }
@@ -608,6 +610,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
         
         var rid = createRect(clone, parentId, vb);
         _registerChild(parentId, rid);
+        // Tag with Figma ID for scene update feature
+        tagLayerWithFigmaId(rid, node.attrs && node.attrs.id);
         // DropShadow: if this node has filter url(#id) attach passes now
         try {
             var fId = extractUrlRefId(node.attrs && node.attrs.filter);
@@ -748,6 +752,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
         
         var cid = createCircle(cloneC, parentId, vb);
         _registerChild(parentId, cid);
+        // Tag with Figma ID for scene update feature
+        tagLayerWithFigmaId(cid, node.attrs && node.attrs.id);
         try {
             var fIdC = extractUrlRefId(node.attrs && node.attrs.filter);
             if (!fIdC && node.attrs && node.attrs._inheritedFilterId) fIdC = node.attrs._inheritedFilterId;
@@ -866,6 +872,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
         
         var eid = createEllipse(cloneE, parentId, vb);
         _registerChild(parentId, eid);
+        // Tag with Figma ID for scene update feature
+        tagLayerWithFigmaId(eid, node.attrs && node.attrs.id);
         try {
             var fIdE = extractUrlRefId(node.attrs && node.attrs.filter);
             if (!fIdE && node.attrs && node.attrs._inheritedFilterId) fIdE = node.attrs._inheritedFilterId;
@@ -980,6 +988,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
             return null;
         }
         _registerChild(parentId, tid);
+        // Tag with Figma ID for scene update feature
+        tagLayerWithFigmaId(tid, node.attrs && node.attrs.id);
         try {
             var fIdT = extractUrlRefId(node.attrs && node.attrs.filter);
             if (!fIdT && node.attrs && node.attrs._inheritedFilterId) fIdT = node.attrs._inheritedFilterId;
@@ -1054,6 +1064,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
         
         var idImg = createImage(cloneImg, parentId, vb);
         _registerChild(parentId, idImg);
+        // Tag with Figma ID for scene update feature
+        tagLayerWithFigmaId(idImg, node.attrs && node.attrs.id);
         try {
             var fIdI = extractUrlRefId(node.attrs && node.attrs.filter);
             if (!fIdI && node.attrs && node.attrs._inheritedFilterId) fIdI = node.attrs._inheritedFilterId;
@@ -1160,7 +1172,9 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
         var rectId = api.primitive('rectangle', cloneUse.name || 'image');
         if (parentId) api.parent(rectId, parentId);
         _registerChild(parentId, rectId);
-        
+        // Tag with Figma ID for scene update feature
+        tagLayerWithFigmaId(rectId, node.attrs && node.attrs.id);
+
         // Calculate position and size
         var x = parseFloat(cloneUse.attrs.x || '0');
         var y = parseFloat(cloneUse.attrs.y || '0');
@@ -1300,6 +1314,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
             
             var vecId = createEditableFromPathSegments(segments, node.name || 'Line', parentId, vb, translateAll, node.attrs);
             _registerChild(parentId, vecId);
+            // Tag with Figma ID for scene update feature
+            tagLayerWithFigmaId(vecId, node.attrs && node.attrs.id);
             try {
                 var fIdL = extractUrlRefId(node.attrs && node.attrs.filter);
                 if (!fIdL && node.attrs && node.attrs._inheritedFilterId) fIdL = node.attrs._inheritedFilterId;
@@ -1374,6 +1390,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
             // Try to recreate as primitives (regular polygon/star)
             var primId = createRegularPolygonPrimitive(node.name || (node.type === 'polygon' ? 'Polygon' : 'Polyline'), polyPts, parentId, vb, translateAll, node.attrs);
             if (primId) {
+                // Tag with Figma ID for scene update feature
+                tagLayerWithFigmaId(primId, node.attrs && node.attrs.id);
                 if (stats) stats.paths = (stats.paths || 0) + 1;
                 return primId;
             }
@@ -1454,6 +1472,8 @@ function importNode(node, parentId, vb, inheritedTranslate, stats, model, inHidd
         }
         var vecId = createEditableFromPathSegments(segments, node.name || 'Path', parentId, vb, translateAll, node.attrs);
         _registerChild(parentId, vecId);
+        // Tag with Figma ID for scene update feature
+        tagLayerWithFigmaId(vecId, node.attrs && node.attrs.id);
         try {
             var fIdP = extractUrlRefId(node.attrs && node.attrs.filter);
             if (!fIdP && node.attrs && node.attrs._inheritedFilterId) fIdP = node.attrs._inheritedFilterId;
